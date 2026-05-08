@@ -1,0 +1,2166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<title>桃源仙境 · 灵兽奇缘</title>
+<style>
+:root{
+  --peach:#f4a6a0;
+  --peach-deep:#e08784;
+  --peach-soft:#fde2dd;
+  --jade:#8fc8a0;
+  --jade-deep:#5a9b76;
+  --jade-soft:#d8eedf;
+  --gold:#e8b86b;
+  --gold-deep:#c69143;
+  --cream:#fdf6e8;
+  --cream-deep:#f5e8c8;
+  --ink:#3a2820;
+  --ink-soft:#5d4037;
+  --vermilion:#d44a3c;
+  --sky-top:#fde2c8;
+  --sky-mid:#fbc7c1;
+  --sky-bot:#e6d4f0;
+  --grass:#a8d8a8;
+  --shadow:0 4px 14px rgba(94,55,40,.18);
+  --shadow-soft:0 2px 8px rgba(94,55,40,.12);
+  --shadow-deep:0 8px 24px rgba(94,55,40,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{height:100%;overflow:hidden;font-family:"楷体",KaiTi,STKaiti,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",serif;color:var(--ink);font-size:15px;line-height:1.5}
+body{
+  background:linear-gradient(180deg,var(--sky-top) 0%,var(--sky-mid) 35%,var(--sky-bot) 75%,#f0e0d8 100%);
+  position:relative;
+  touch-action:manipulation;
+}
+/* ===== 装饰背景:云、山、樱花 ===== */
+.bg-layer{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.cloud{position:absolute;background:rgba(255,255,255,.55);border-radius:50%;filter:blur(2px);animation:drift linear infinite}
+.cloud::before,.cloud::after{content:'';position:absolute;background:inherit;border-radius:50%}
+.cloud.c1{width:120px;height:32px;top:8%;left:-130px;animation-duration:60s}
+.cloud.c1::before{width:60px;height:60px;top:-25px;left:20px}
+.cloud.c1::after{width:50px;height:45px;top:-18px;left:55px}
+.cloud.c2{width:90px;height:24px;top:18%;left:-100px;animation-duration:80s;animation-delay:-30s;opacity:.65}
+.cloud.c2::before{width:42px;height:42px;top:-18px;left:15px}
+.cloud.c2::after{width:36px;height:32px;top:-12px;left:42px}
+.cloud.c3{width:140px;height:36px;top:5%;left:-150px;animation-duration:90s;animation-delay:-50s;opacity:.5}
+.cloud.c3::before{width:65px;height:65px;top:-28px;left:22px}
+.cloud.c3::after{width:55px;height:48px;top:-20px;left:60px}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(calc(100vw + 200px))}}
+
+.mountain{position:absolute;bottom:0;left:0;right:0;height:35vh;pointer-events:none}
+.petal{position:absolute;font-size:14px;animation:fall linear infinite;opacity:.85;will-change:transform}
+@keyframes fall{
+  0%{transform:translate(0,-20px) rotate(0deg);opacity:0}
+  10%{opacity:.85}
+  90%{opacity:.85}
+  100%{transform:translate(40px,110vh) rotate(720deg);opacity:0}
+}
+
+/* ===== 应用容器 ===== */
+#app{position:relative;width:100%;height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;z-index:1}
+
+/* ===== 顶部状态栏 ===== */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px 8px;gap:8px;
+  background:linear-gradient(180deg,rgba(253,246,232,.92),rgba(253,246,232,.78));
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(212,74,60,.15);
+  position:relative;z-index:5;
+}
+.player{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--peach),var(--gold));
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;border:2px solid var(--cream);box-shadow:var(--shadow-soft);
+  flex-shrink:0;
+}
+.player-info{min-width:0}
+.player-name{font-size:15px;font-weight:bold;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-title{font-size:11px;color:var(--ink-soft);opacity:.8}
+.stats{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.stat{
+  display:flex;align-items:center;gap:3px;
+  padding:4px 8px;border-radius:14px;
+  background:rgba(255,255,255,.7);
+  font-size:12px;font-weight:bold;
+  box-shadow:var(--shadow-soft);
+  border:1px solid rgba(232,184,107,.3);
+  white-space:nowrap;
+}
+.stat-icon{font-size:14px}
+.stat .num{color:var(--vermilion);min-width:20px;text-align:right}
+
+/* 体力条 */
+.energy-bar{
+  position:relative;width:50px;height:6px;background:rgba(0,0,0,.1);
+  border-radius:3px;overflow:hidden;margin:0 2px;
+}
+.energy-fill{height:100%;background:linear-gradient(90deg,#7fc97f,#5fa05f);transition:width .4s}
+
+/* ===== 主舞台 ===== */
+.stage{flex:1;position:relative;overflow:hidden}
+.scene{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transform:translateY(8px);
+  transition:opacity .35s,transform .35s;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.scene.active{opacity:1;pointer-events:auto;transform:translateY(0)}
+.scene::-webkit-scrollbar{width:0;display:none}
+
+/* ===== 底部导航 ===== */
+.navbar{
+  display:flex;justify-content:space-around;align-items:stretch;
+  background:linear-gradient(180deg,rgba(253,246,232,.95),rgba(245,232,200,.98));
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-top:2px solid rgba(212,74,60,.25);
+  padding:6px 4px max(6px,env(safe-area-inset-bottom));
+  position:relative;z-index:5;
+  box-shadow:0 -4px 12px rgba(94,55,40,.08);
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:6px 2px;border:none;background:transparent;cursor:pointer;
+  transition:transform .2s;position:relative;
+}
+.nav-btn:active{transform:scale(.92)}
+.nav-icon{font-size:24px;line-height:1;filter:grayscale(.3);transition:all .25s}
+.nav-label{font-size:11px;color:var(--ink-soft);margin-top:3px;font-weight:bold}
+.nav-btn.active .nav-icon{filter:grayscale(0);transform:translateY(-2px) scale(1.15)}
+.nav-btn.active .nav-label{color:var(--vermilion)}
+.nav-btn.active::after{
+  content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+  width:18px;height:3px;border-radius:2px;background:var(--vermilion);
+}
+
+/* ===== 通用元素 ===== */
+.scene-title{
+  text-align:center;padding:10px 14px 6px;
+  font-size:18px;font-weight:bold;color:var(--ink);
+  letter-spacing:2px;
+  text-shadow:0 1px 0 rgba(255,255,255,.6);
+}
+.scene-title small{display:block;font-size:11px;color:var(--ink-soft);font-weight:normal;letter-spacing:1px;margin-top:2px;opacity:.75}
+
+.panel{
+  background:rgba(253,246,232,.85);backdrop-filter:blur(6px);
+  border-radius:18px;margin:8px 12px;padding:14px;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(232,184,107,.4);
+  position:relative;
+}
+.panel::before{
+  content:'';position:absolute;top:6px;left:6px;right:6px;bottom:6px;
+  border:1px dashed rgba(212,74,60,.2);border-radius:14px;pointer-events:none;
+}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:8px 16px;border:none;border-radius:22px;cursor:pointer;
+  font-family:inherit;font-size:14px;font-weight:bold;
+  background:linear-gradient(180deg,var(--peach),var(--peach-deep));
+  color:#fff;box-shadow:0 3px 0 var(--peach-deep),var(--shadow-soft);
+  transition:all .15s;letter-spacing:1px;
+}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--peach-deep)}
+.btn.gold{background:linear-gradient(180deg,var(--gold),var(--gold-deep));box-shadow:0 3px 0 var(--gold-deep),var(--shadow-soft)}
+.btn.gold:active{box-shadow:0 1px 0 var(--gold-deep)}
+.btn.jade{background:linear-gradient(180deg,var(--jade),var(--jade-deep));box-shadow:0 3px 0 var(--jade-deep),var(--shadow-soft)}
+.btn.jade:active{box-shadow:0 1px 0 var(--jade-deep)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.small{padding:5px 12px;font-size:12px;border-radius:16px}
+
+/* ===== 农场 ===== */
+.farm-header{display:flex;justify-content:space-between;align-items:center;padding:0 16px 4px}
+.farm-tools{display:flex;gap:6px}
+.tool{
+  width:42px;height:42px;border-radius:12px;
+  background:rgba(255,255,255,.85);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;cursor:pointer;
+  border:2px solid transparent;
+  box-shadow:var(--shadow-soft);
+  transition:all .15s;
+}
+.tool.active{border-color:var(--vermilion);background:var(--cream-deep);transform:scale(1.05)}
+.tool:active{transform:scale(.95)}
+
+.farm-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+  padding:8px 16px;max-width:420px;margin:0 auto;width:100%;
+}
+.plot{
+  aspect-ratio:1;border-radius:14px;
+  background:linear-gradient(135deg,#b8956d,#8b6f47);
+  position:relative;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;
+  border:2px solid #6b5535;
+  box-shadow:inset 0 -3px 6px rgba(0,0,0,.15),var(--shadow-soft);
+  transition:transform .2s,box-shadow .2s;
+  overflow:hidden;
+}
+.plot:active{transform:scale(.95)}
+.plot.locked{
+  background:linear-gradient(135deg,#6b6b5a,#4a4a3a);
+  cursor:pointer;
+}
+.plot.locked::before{content:'🪨';font-size:28px;filter:grayscale(.3)}
+.plot.tilled{background:linear-gradient(135deg,#7d5d3d,#5a4127);}
+.plot.tilled::after{
+  content:'';position:absolute;inset:6px;
+  background-image:repeating-linear-gradient(45deg,transparent,transparent 4px,rgba(0,0,0,.12) 4px,rgba(0,0,0,.12) 5px);
+  border-radius:8px;
+}
+.plot.planted{background:linear-gradient(135deg,#7d5d3d,#5a4127)}
+.plot.watered{box-shadow:inset 0 -3px 6px rgba(0,0,0,.2),inset 0 0 16px rgba(50,150,255,.25),var(--shadow-soft);background:linear-gradient(135deg,#5d4127,#3d2917)}
+.plot .crop{position:relative;z-index:1;animation:bob 2.5s ease-in-out infinite;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.plot.ripe::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at center,rgba(255,220,80,.4),transparent 65%);
+  animation:glow 2s ease-in-out infinite;
+}
+@keyframes glow{0%,100%{opacity:.5}50%{opacity:1}}
+.plot .timer{
+  position:absolute;top:2px;right:4px;
+  font-size:9px;color:#fff;background:rgba(0,0,0,.45);
+  padding:1px 5px;border-radius:8px;font-weight:bold;
+  z-index:2;
+}
+.plot.dragover{transform:scale(1.05);box-shadow:0 0 0 3px var(--gold),var(--shadow);}
+
+/* 种子库存 */
+.inventory{
+  display:flex;gap:8px;padding:8px 16px;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.inventory::-webkit-scrollbar{height:0}
+.inv-item{
+  flex-shrink:0;width:60px;
+  background:rgba(253,246,232,.92);
+  border:2px solid rgba(232,184,107,.5);
+  border-radius:14px;padding:6px 4px;
+  text-align:center;cursor:grab;
+  position:relative;
+  box-shadow:var(--shadow-soft);
+  transition:transform .15s;
+  touch-action:none;
+}
+.inv-item:active{cursor:grabbing;transform:scale(1.08);z-index:10}
+.inv-item.dragging{opacity:.5}
+.inv-item .ico{font-size:26px;line-height:1.2}
+.inv-item .nm{font-size:10px;color:var(--ink);font-weight:bold;line-height:1.2;margin-top:1px}
+.inv-item .ct{
+  position:absolute;top:-4px;right:-4px;
+  background:var(--vermilion);color:#fff;
+  font-size:10px;font-weight:bold;
+  width:18px;height:18px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--cream);
+}
+.inv-item.empty{opacity:.3}
+
+/* 拖拽精灵 */
+.drag-ghost{
+  position:fixed;pointer-events:none;z-index:9999;
+  font-size:36px;transform:translate(-50%,-50%);
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.3));
+  transition:none;
+}
+
+/* ===== 宠物 ===== */
+.pet-yard{
+  position:relative;flex:1;
+  background:
+    radial-gradient(ellipse at 50% 90%,rgba(168,216,168,.5) 0%,transparent 60%),
+    linear-gradient(180deg,transparent 30%,rgba(168,216,168,.35) 70%,rgba(143,200,160,.5) 100%);
+  margin:8px 12px;border-radius:18px;
+  min-height:200px;overflow:hidden;
+  border:2px solid rgba(143,200,160,.4);
+  box-shadow:var(--shadow);
+}
+.pet-yard::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    radial-gradient(circle at 15% 75%,#6b8e4e 0,#6b8e4e 2px,transparent 3px),
+    radial-gradient(circle at 85% 80%,#7da05a 0,#7da05a 2px,transparent 3px),
+    radial-gradient(circle at 30% 90%,#8fb56a 0,#8fb56a 2px,transparent 3px),
+    radial-gradient(circle at 70% 65%,#6b8e4e 0,#6b8e4e 2px,transparent 3px);
+  pointer-events:none;
+}
+.pet-yard::after{
+  content:'🌿  🍄  🌸  🦋  🌼';position:absolute;bottom:8px;left:0;right:0;
+  font-size:14px;text-align:center;letter-spacing:18px;opacity:.7;
+}
+
+.pet-stage{position:absolute;inset:10px 10px 40px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-around;gap:6px}
+.pet{
+  position:relative;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;
+  padding:4px;
+  transition:transform .2s;
+}
+.pet:active{transform:scale(.92)}
+.pet.selected{transform:scale(1.1)}
+.pet .body{
+  font-size:48px;line-height:1;
+  filter:drop-shadow(0 4px 4px rgba(0,0,0,.25));
+  animation:bob 2.5s ease-in-out infinite;
+}
+.pet.happy .body{animation:happy .8s ease-in-out infinite}
+@keyframes happy{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-8px) rotate(5deg)}}
+.pet .nm-tag{
+  margin-top:2px;background:rgba(255,255,255,.85);
+  border:1px solid var(--gold);border-radius:10px;
+  padding:1px 8px;font-size:11px;font-weight:bold;
+  white-space:nowrap;
+}
+.pet .lvl{color:var(--vermilion)}
+.pet .hb{
+  position:absolute;top:-4px;left:50%;transform:translateX(-50%);
+  width:38px;height:5px;background:rgba(0,0,0,.15);
+  border-radius:3px;overflow:hidden;
+}
+.pet .hb-fill{height:100%;background:linear-gradient(90deg,#ff6b9d,#ff4081);transition:width .4s}
+.pet.dragover{transform:scale(1.15)}
+.pet .heart{
+  position:absolute;top:-12px;right:-2px;
+  font-size:14px;opacity:0;
+  animation:heartUp 1s ease-out;
+}
+@keyframes heartUp{
+  0%{opacity:0;transform:translateY(0) scale(.5)}
+  20%{opacity:1;transform:translateY(-4px) scale(1.2)}
+  100%{opacity:0;transform:translateY(-30px) scale(.8)}
+}
+
+.pet-actions{padding:8px 16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+.pet-detail{
+  background:rgba(253,246,232,.92);
+  margin:0 12px 8px;border-radius:16px;padding:10px 14px;
+  box-shadow:var(--shadow-soft);font-size:13px;
+  border:1px solid rgba(232,184,107,.4);
+}
+.pet-detail .row{display:flex;justify-content:space-between;margin:3px 0;color:var(--ink-soft)}
+.pet-detail .row strong{color:var(--ink)}
+
+/* ===== 盲盒 ===== */
+.box-area{padding:14px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.box-display{
+  width:160px;height:160px;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.box-display .box{
+  font-size:120px;line-height:1;
+  filter:drop-shadow(0 8px 12px rgba(212,74,60,.35));
+  animation:boxFloat 3s ease-in-out infinite;
+  transition:transform .3s;
+}
+@keyframes boxFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+.box-display.shaking .box{animation:boxShake .15s ease-in-out infinite}
+@keyframes boxShake{0%,100%{transform:rotate(-15deg) scale(1.05)}50%{transform:rotate(15deg) scale(1.05)}}
+.box-display.opening .box{animation:boxBurst .8s ease-out forwards}
+@keyframes boxBurst{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.4) rotate(20deg)}
+  60%{transform:scale(1.6) rotate(-20deg);filter:drop-shadow(0 0 30px gold)}
+  100%{transform:scale(0);opacity:0}
+}
+.box-display .ray{
+  position:absolute;inset:-30px;
+  background:conic-gradient(from 0deg,transparent,gold,transparent,gold,transparent,gold,transparent,gold,transparent);
+  border-radius:50%;opacity:0;
+  animation:rayspin 4s linear infinite;
+}
+.box-display.opening .ray{opacity:.6;animation:rayspin 1.5s linear infinite}
+@keyframes rayspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+.pull-hint{
+  font-size:12px;color:var(--ink-soft);text-align:center;
+  background:rgba(255,255,255,.7);padding:5px 12px;border-radius:14px;
+  border:1px dashed var(--gold);
+}
+
+.box-options{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.box-option{
+  background:rgba(253,246,232,.92);
+  border:2px solid rgba(232,184,107,.5);
+  border-radius:14px;padding:10px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  min-width:120px;cursor:pointer;
+  box-shadow:var(--shadow-soft);transition:transform .15s;
+}
+.box-option:active{transform:scale(.95)}
+.box-option.selected{border-color:var(--vermilion);background:var(--cream-deep);box-shadow:0 0 0 3px rgba(212,74,60,.2),var(--shadow-soft)}
+.box-option .ttl{font-weight:bold;font-size:14px;color:var(--ink)}
+.box-option .price{font-size:13px;color:var(--vermilion);font-weight:bold}
+.box-option .desc{font-size:11px;color:var(--ink-soft);text-align:center;line-height:1.4}
+
+/* 揭晓动画 */
+.reveal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:radial-gradient(circle at center,rgba(0,0,0,.55),rgba(0,0,0,.85));
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.reveal-overlay.show{display:flex;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.reveal-card{
+  background:linear-gradient(135deg,#fff8e8,#fde8d8);
+  border-radius:22px;padding:22px 18px;
+  width:80%;max-width:280px;text-align:center;
+  position:relative;border:3px solid var(--gold);
+  box-shadow:0 0 50px rgba(255,200,80,.6),var(--shadow-deep);
+  animation:cardPop .5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes cardPop{0%{transform:scale(.3) rotate(-15deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+.reveal-card .got{font-size:14px;color:var(--ink-soft);letter-spacing:2px}
+.reveal-card .item{font-size:90px;margin:8px 0;animation:itemPulse 1.6s ease-in-out infinite}
+@keyframes itemPulse{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.08) rotate(3deg)}}
+.reveal-card .name{font-size:22px;font-weight:bold;color:var(--ink);letter-spacing:2px;margin:4px 0}
+.reveal-card .rarity{display:inline-block;padding:2px 12px;border-radius:12px;font-size:12px;font-weight:bold;color:#fff;margin:4px 0 12px;letter-spacing:2px}
+.r-N{background:#888}
+.r-R{background:#4a90d9}
+.r-SR{background:linear-gradient(90deg,#a040d9,#d040a0)}
+.r-SSR{background:linear-gradient(90deg,#ff6b35,#f7c948,#ff6b35);background-size:200% 100%;animation:rainbow 2s linear infinite}
+@keyframes rainbow{from{background-position:0% 50%}to{background-position:200% 50%}}
+
+.confetti{position:absolute;font-size:20px;pointer-events:none;animation:confettiFall 2s ease-out forwards}
+@keyframes confettiFall{
+  0%{transform:translate(0,0) rotate(0);opacity:1}
+  100%{transform:translate(var(--dx),var(--dy)) rotate(720deg);opacity:0}
+}
+
+/* ===== 战斗 ===== */
+.battle-arena{
+  flex:1;position:relative;margin:8px 12px;border-radius:18px;
+  background:
+    linear-gradient(180deg,rgba(255,200,180,.3) 0%,rgba(180,140,100,.4) 70%,rgba(120,90,60,.5) 100%),
+    radial-gradient(ellipse at 50% 80%,#a87850,#6b4923);
+  border:2px solid rgba(107,73,35,.5);
+  box-shadow:var(--shadow);overflow:hidden;
+  display:flex;flex-direction:column;justify-content:space-between;
+  min-height:280px;
+}
+.battle-arena::before{
+  content:'⛰️    🌲  🌳    ⛰️';
+  position:absolute;top:8px;left:0;right:0;text-align:center;
+  font-size:18px;letter-spacing:8px;opacity:.6;
+}
+
+.foe-side,.hero-side{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.foe-side{justify-content:flex-end}
+.hero-side{justify-content:flex-start;margin-top:auto}
+
+.fighter{position:relative;display:flex;flex-direction:column;align-items:center}
+.fighter .ch{
+  font-size:62px;line-height:1;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,.4));
+}
+.fighter.foe .ch{transform:scaleX(-1)}
+.fighter.attacking .ch{animation:atk .4s}
+.fighter.foe.attacking .ch{animation:atk-foe .4s}
+@keyframes atk{0%{transform:translateX(0)}30%{transform:translateX(40px) scale(1.1)}100%{transform:translateX(0)}}
+@keyframes atk-foe{0%{transform:scaleX(-1) translateX(0)}30%{transform:scaleX(-1) translateX(40px) scale(1.1)}100%{transform:scaleX(-1) translateX(0)}}
+.fighter.hurt .ch{animation:hurt .4s}
+@keyframes hurt{0%,100%{transform:translateX(0);filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}25%{transform:translateX(-8px);filter:drop-shadow(0 4px 6px rgba(0,0,0,.4)) brightness(1.5) hue-rotate(-30deg)}75%{transform:translateX(8px);filter:drop-shadow(0 4px 6px rgba(0,0,0,.4)) brightness(1.5) hue-rotate(-30deg)}}
+.fighter.foe.hurt .ch{animation:hurt-foe .4s}
+@keyframes hurt-foe{0%,100%{transform:scaleX(-1) translateX(0)}25%{transform:scaleX(-1) translateX(8px);filter:brightness(1.5) hue-rotate(-30deg)}75%{transform:scaleX(-1) translateX(-8px);filter:brightness(1.5) hue-rotate(-30deg)}}
+.fighter.defeated .ch{animation:defeat 1s forwards}
+@keyframes defeat{to{transform:rotate(90deg) translateY(20px);opacity:0}}
+
+.dmg-num{
+  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  font-size:22px;font-weight:bold;color:var(--vermilion);
+  text-shadow:0 0 4px #fff,2px 2px 0 #000;
+  animation:dmgUp 1s ease-out forwards;pointer-events:none;
+  z-index:10;
+}
+.dmg-num.crit{color:gold;font-size:28px}
+@keyframes dmgUp{0%{opacity:0;transform:translateX(-50%) translateY(0) scale(.5)}30%{opacity:1;transform:translateX(-50%) translateY(-15px) scale(1.4)}100%{opacity:0;transform:translateX(-50%) translateY(-50px) scale(1)}}
+
+.hp-bar{
+  width:120px;height:14px;background:rgba(0,0,0,.4);
+  border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.3);
+  position:relative;
+}
+.hp-fill{height:100%;background:linear-gradient(90deg,#ff4444,#ff8888);transition:width .4s}
+.hp-fill.foe-hp{background:linear-gradient(90deg,#9c27b0,#673ab7)}
+.hp-text{position:absolute;inset:0;text-align:center;font-size:10px;color:#fff;font-weight:bold;line-height:14px;text-shadow:1px 1px 1px rgba(0,0,0,.7)}
+
+.fighter-info{display:flex;flex-direction:column;gap:2px;color:#fff;text-shadow:1px 1px 2px rgba(0,0,0,.7)}
+.fighter-info .nm{font-size:14px;font-weight:bold}
+.fighter-info .desc{font-size:10px;opacity:.85}
+
+.battle-controls{
+  background:rgba(253,246,232,.94);
+  margin:8px 12px;padding:10px;border-radius:16px;
+  box-shadow:var(--shadow);border:1px solid rgba(232,184,107,.4);
+}
+.battle-log{
+  max-height:60px;overflow-y:auto;font-size:11px;
+  color:var(--ink-soft);margin-bottom:8px;
+  padding:4px 8px;background:rgba(0,0,0,.04);border-radius:8px;
+}
+.battle-log p{margin:1px 0;line-height:1.4}
+.battle-log::-webkit-scrollbar{width:0}
+
+.skill-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.skill-btn{
+  flex:1;min-width:80px;
+  background:linear-gradient(180deg,#fff8e8,#f5e8c8);
+  border:2px solid var(--gold);border-radius:12px;
+  padding:6px 4px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  transition:all .15s;
+  box-shadow:0 2px 0 var(--gold-deep);
+}
+.skill-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 0 0 var(--gold-deep)}
+.skill-btn:disabled{opacity:.4;cursor:not-allowed}
+.skill-btn .si{font-size:24px}
+.skill-btn .sn{font-size:12px;font-weight:bold;color:var(--ink)}
+.skill-btn .sd{font-size:10px;color:var(--ink-soft)}
+
+/* 蓄力槽 */
+.charge-zone{
+  position:relative;height:36px;border-radius:18px;
+  background:linear-gradient(90deg,#444,#222);
+  margin:6px 0;cursor:pointer;overflow:hidden;
+  user-select:none;-webkit-user-select:none;
+  border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:13px;font-weight:bold;
+  text-shadow:1px 1px 2px rgba(0,0,0,.8);
+  letter-spacing:2px;
+  touch-action:none;
+}
+.charge-fill{
+  position:absolute;left:0;top:0;bottom:0;width:0%;
+  background:linear-gradient(90deg,#ff6b35,#f7c948,#7fc97f,#4a90d9,#a040d9);
+  background-size:300% 100%;
+  transition:width .05s linear;
+  z-index:0;
+}
+.charge-zone.charging .charge-fill{animation:chargeBg .8s linear infinite}
+@keyframes chargeBg{from{background-position:0%}to{background-position:300%}}
+.charge-zone span{position:relative;z-index:1}
+
+/* ===== 探索 ===== */
+.explore-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:5px;
+  padding:8px 12px;
+}
+.exp-tile{
+  aspect-ratio:1;border-radius:10px;
+  background:linear-gradient(135deg,#9b8467,#6b5635);
+  position:relative;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  border:2px solid #4a3825;
+  box-shadow:inset 0 -2px 4px rgba(0,0,0,.2);
+  transition:transform .15s;
+  overflow:hidden;
+}
+.exp-tile:active{transform:scale(.92)}
+.exp-tile.fog{background:linear-gradient(135deg,#6b6b7a,#4a4a5a)}
+.exp-tile.fog::before{content:'❓';font-size:22px;opacity:.6}
+.exp-tile.cleared{background:linear-gradient(135deg,#a8c878,#7a9b58)}
+.exp-tile.found{background:linear-gradient(135deg,#f5c878,#d49b4a);animation:foundPulse .8s ease-in-out infinite}
+@keyframes foundPulse{0%,100%{box-shadow:inset 0 -2px 4px rgba(0,0,0,.2),0 0 0 rgba(255,200,80,.6)}50%{box-shadow:inset 0 -2px 4px rgba(0,0,0,.2),0 0 12px rgba(255,200,80,.7)}}
+
+.explore-info{
+  background:rgba(253,246,232,.92);margin:8px 12px;padding:10px 14px;
+  border-radius:14px;font-size:12px;color:var(--ink-soft);
+  border:1px solid rgba(232,184,107,.4);box-shadow:var(--shadow-soft);
+  text-align:center;
+}
+.explore-info .ip{display:flex;justify-content:space-around;margin-top:5px;font-size:13px}
+.explore-info .ip strong{color:var(--vermilion)}
+
+/* ===== 提示 ===== */
+.toast{
+  position:fixed;left:50%;top:80px;transform:translateX(-50%) translateY(-30px);
+  background:rgba(58,40,32,.92);color:#fff;
+  padding:10px 22px;border-radius:24px;
+  font-size:14px;font-weight:bold;letter-spacing:1px;
+  z-index:300;opacity:0;
+  pointer-events:none;
+  box-shadow:var(--shadow-deep);
+  white-space:nowrap;max-width:90%;
+}
+.toast.show{animation:toastShow 2.4s ease-out}
+@keyframes toastShow{
+  0%{opacity:0;transform:translateX(-50%) translateY(-30px)}
+  10%,90%{opacity:1;transform:translateX(-50%) translateY(0)}
+  100%{opacity:0;transform:translateX(-50%) translateY(-20px)}
+}
+
+/* 弹窗 */
+.modal-bg{
+  position:fixed;inset:0;z-index:150;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-bg.show{display:flex;animation:fadeIn .3s}
+.modal{
+  background:linear-gradient(135deg,#fff8e8,#fde8d8);
+  border-radius:18px;padding:18px;max-width:340px;width:100%;
+  border:2px solid var(--gold);box-shadow:var(--shadow-deep);
+  animation:cardPop .4s cubic-bezier(.34,1.56,.64,1);
+  text-align:center;
+}
+.modal h3{font-size:18px;color:var(--ink);margin-bottom:8px;letter-spacing:2px}
+.modal p{font-size:13px;color:var(--ink-soft);margin:6px 0;line-height:1.6}
+.modal .btn-row{display:flex;gap:8px;justify-content:center;margin-top:12px}
+
+/* 教程 */
+.guide{
+  position:fixed;left:50%;bottom:80px;transform:translateX(-50%);
+  background:rgba(58,40,32,.92);color:#fff;
+  padding:8px 16px;border-radius:14px;
+  font-size:12px;letter-spacing:1px;
+  z-index:120;
+  box-shadow:var(--shadow-deep);
+  border:1px solid rgba(255,255,255,.2);
+  pointer-events:none;
+  animation:guideFloat 2s ease-in-out infinite;
+  max-width:90%;
+}
+@keyframes guideFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-3px)}}
+.guide::after{content:'';position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-top-color:rgba(58,40,32,.92)}
+
+/* 响应式 - 电脑端优化 */
+@media (min-width:600px){
+  body{display:flex;align-items:center;justify-content:center}
+  #app{height:96vh;max-height:880px;border-radius:24px;overflow:hidden;box-shadow:0 16px 60px rgba(94,55,40,.3);border:1px solid rgba(232,184,107,.4)}
+}
+@media (min-width:520px) and (max-height:780px){
+  #app{height:100vh;border-radius:0}
+}
+
+/* 滚动隐藏 */
+.scene::-webkit-scrollbar{display:none}
+</style>
+</head>
+<body>
+
+<!-- 背景装饰 -->
+<div class="bg-layer">
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+  <svg class="mountain" viewBox="0 0 520 200" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="mtn1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#9bb89a" stop-opacity=".55"/>
+        <stop offset="100%" stop-color="#7a9779" stop-opacity=".75"/>
+      </linearGradient>
+      <linearGradient id="mtn2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#7a8b9a" stop-opacity=".4"/>
+        <stop offset="100%" stop-color="#5a6b78" stop-opacity=".6"/>
+      </linearGradient>
+    </defs>
+    <path d="M0,200 L0,120 Q60,70 130,90 Q200,50 280,80 Q360,40 440,75 Q500,55 520,80 L520,200 Z" fill="url(#mtn2)"/>
+    <path d="M0,200 L0,150 Q40,110 100,125 Q160,90 220,115 Q280,80 350,110 Q420,85 480,115 Q500,105 520,120 L520,200 Z" fill="url(#mtn1)"/>
+  </svg>
+</div>
+<div id="petals"></div>
+
+<div id="app">
+
+  <!-- 顶部状态栏 -->
+  <div class="topbar">
+    <div class="player">
+      <div class="avatar" id="avatarBtn">🧙</div>
+      <div class="player-info">
+        <div class="player-name" id="playerName">桃源仙人</div>
+        <div class="player-title">Lv.<span id="playerLv">1</span> · <span id="playerTitle">见习农夫</span></div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat" title="金币"><span class="stat-icon">🪙</span><span class="num" id="coinTxt">100</span></div>
+      <div class="stat" title="灵石"><span class="stat-icon">💎</span><span class="num" id="gemTxt">5</span></div>
+      <div class="stat" title="体力">
+        <span class="stat-icon">⚡</span>
+        <div class="energy-bar"><div class="energy-fill" id="energyFill"></div></div>
+        <span class="num" id="energyTxt">20</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主舞台 -->
+  <div class="stage" id="stage">
+
+    <!-- 场景:农场 -->
+    <div class="scene active" data-scene="farm">
+      <div class="scene-title">桃源田圃<small>～拖拽种子下田 · 长按收获～</small></div>
+      <div class="farm-header">
+        <div style="font-size:12px;color:var(--ink-soft)">
+          <span id="ripeCount">0</span>/<span id="totalPlot">8</span> 株可收获
+        </div>
+        <div class="farm-tools">
+          <div class="tool" data-tool="hoe" title="锄头-开垦"><span>⛏️</span></div>
+          <div class="tool" data-tool="water" title="水壶-浇水"><span>💧</span></div>
+          <div class="tool" data-tool="harvest" title="收割"><span>🧺</span></div>
+        </div>
+      </div>
+      <div class="farm-grid" id="farmGrid"></div>
+      <div style="padding:4px 16px 0;font-size:11px;color:var(--ink-soft);text-align:center;letter-spacing:1px">⬇ 种子袋·拖入田中播种 ⬇</div>
+      <div class="inventory" id="seedBag"></div>
+      <div class="panel" style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:bold;color:var(--ink);margin-bottom:6px;text-align:center">📜 田间秘籍</div>
+        <div style="font-size:11px;color:var(--ink-soft);line-height:1.7">
+          • 选择<strong>⛏️锄头</strong>点击荒地→开垦耕地<br>
+          • <strong>拖拽</strong>种子袋中的种子→丢入耕地播种<br>
+          • 选择<strong>💧水壶</strong>点击作物→加速生长<br>
+          • <strong>长按</strong>金光闪闪的作物→收获果实<br>
+          • 点击灰色<strong>🪨石块</strong>→消耗体力开荒新田
+        </div>
+      </div>
+    </div>
+
+    <!-- 场景:宠物 -->
+    <div class="scene" data-scene="pet">
+      <div class="scene-title">灵兽园<small>～拖食物饲喂 · 点击宠物互动～</small></div>
+      <div class="pet-yard">
+        <div class="pet-stage" id="petStage"></div>
+      </div>
+      <div class="pet-detail" id="petDetail">
+        <div style="text-align:center;color:var(--ink-soft);font-size:12px">点击宠物查看详情</div>
+      </div>
+      <div class="pet-actions" id="petActions"></div>
+      <div style="padding:4px 16px 0;font-size:11px;color:var(--ink-soft);text-align:center;letter-spacing:1px">⬇ 饲料·拖到宠物身上喂食 ⬇</div>
+      <div class="inventory" id="foodBag" style="padding-bottom:12px"></div>
+    </div>
+
+    <!-- 场景:盲盒 -->
+    <div class="scene" data-scene="box">
+      <div class="scene-title">奇缘盲盒<small>～长按宝盒 · 摇晃揭晓～</small></div>
+      <div class="box-area">
+        <div class="box-display" id="boxDisplay">
+          <div class="ray"></div>
+          <div class="box">🎁</div>
+        </div>
+        <div class="pull-hint" id="pullHint">长按宝盒蓄力开启 ⌛</div>
+        <div class="box-options">
+          <div class="box-option selected" data-box="common">
+            <div style="font-size:32px">📦</div>
+            <div class="ttl">凡品木匣</div>
+            <div class="price">🪙 50</div>
+            <div class="desc">凡间种子<br>偶得寻常灵兽</div>
+          </div>
+          <div class="box-option" data-box="rare">
+            <div style="font-size:32px">🎁</div>
+            <div class="ttl">仙缘玉盒</div>
+            <div class="price">💎 5</div>
+            <div class="desc">珍稀种子<br>多见高阶灵兽</div>
+          </div>
+        </div>
+        <div class="panel" style="margin-top:8px;width:100%;max-width:380px">
+          <div style="font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.7">
+            <strong style="color:var(--vermilion)">珍稀度：</strong>
+            <span style="color:#888">N凡</span> · <span style="color:#4a90d9">R稀</span> · 
+            <span style="color:#a040d9">SR珍</span> · <span style="color:#ff6b35;font-weight:bold">SSR神</span>
+            <br>每日首次开启必出<strong style="color:var(--vermilion)">R</strong>及以上！
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 场景:战斗 -->
+    <div class="scene" data-scene="battle">
+      <div class="scene-title">妖兽试炼<small>～蓄力释放绝技 · 战胜得珍宝～</small></div>
+      <div class="battle-arena" id="battleArena">
+        <div class="foe-side">
+          <div class="fighter foe" id="foeFighter">
+            <div class="ch" id="foeCh">👹</div>
+          </div>
+          <div class="fighter-info">
+            <div class="nm" id="foeName">山中野怪</div>
+            <div class="hp-bar"><div class="hp-fill foe-hp" id="foeHp"></div><div class="hp-text" id="foeHpTxt">100/100</div></div>
+          </div>
+        </div>
+        <div class="hero-side">
+          <div class="fighter-info" style="text-align:right">
+            <div class="nm" id="heroName">无伙伴</div>
+            <div class="hp-bar"><div class="hp-fill" id="heroHp"></div><div class="hp-text" id="heroHpTxt">--</div></div>
+          </div>
+          <div class="fighter" id="heroFighter">
+            <div class="ch" id="heroCh">❓</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="battle-controls">
+        <div class="battle-log" id="battleLog"><p>选择灵兽与敌人，挑战开始！</p></div>
+        <div class="charge-zone" id="chargeZone">
+          <div class="charge-fill" id="chargeFill"></div>
+          <span id="chargeTxt">长按蓄力·释放绝技💥</span>
+        </div>
+        <div class="skill-row">
+          <button class="skill-btn" id="atkBtn"><span class="si">⚔️</span><span class="sn">普攻</span><span class="sd">基础伤害</span></button>
+          <button class="skill-btn" id="defBtn"><span class="si">🛡️</span><span class="sn">守势</span><span class="sd">减伤回血</span></button>
+          <button class="skill-btn" id="fleeBtn"><span class="si">💨</span><span class="sn">撤退</span><span class="sd">逃离战斗</span></button>
+        </div>
+      </div>
+      <div style="padding:4px 16px 12px;font-size:11px;color:var(--ink-soft);text-align:center">
+        点击下方<strong>挑战</strong>按钮开战！消耗5体力
+      </div>
+      <div class="pet-actions" style="padding-bottom:14px">
+        <button class="btn gold" id="startBattleBtn">⚔️ 寻怪挑战</button>
+        <button class="btn jade" id="changePetBtn">🔁 更换灵兽</button>
+      </div>
+    </div>
+
+    <!-- 场景:探索 -->
+    <div class="scene" data-scene="explore">
+      <div class="scene-title">秘境开荒<small>～点击迷雾·探索宝藏～</small></div>
+      <div class="explore-info">
+        当前秘境: <strong id="zoneName">桃林浅滩</strong>
+        <div class="ip">
+          <span>已发现 <strong id="exploredCnt">0</strong>/25</span>
+          <span>消耗 <strong>1⚡</strong>/格</span>
+          <span>第 <strong id="zoneLv">1</strong> 层</span>
+        </div>
+      </div>
+      <div class="explore-grid" id="exploreGrid"></div>
+      <div class="panel" style="margin:8px 12px 12px">
+        <div style="font-size:12px;color:var(--ink-soft);line-height:1.7;text-align:center">
+          🌟 <strong>探索奖励：</strong>种子·金币·灵石·稀有灵兽蛋<br>
+          ⛰️ 全部探索完毕可<strong>深入下一层</strong>，奖励翻倍！<br>
+          💫 <strong>双击</strong>已探索的格子可<strong>重置</strong>本层
+        </div>
+        <div style="text-align:center;margin-top:8px">
+          <button class="btn jade small" id="resetZoneBtn">重置秘境</button>
+          <button class="btn gold small" id="nextZoneBtn">深入下层 ⏬</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 底部导航 -->
+  <div class="navbar">
+    <button class="nav-btn active" data-nav="farm"><span class="nav-icon">🌾</span><span class="nav-label">农场</span></button>
+    <button class="nav-btn" data-nav="pet"><span class="nav-icon">🦊</span><span class="nav-label">灵兽</span></button>
+    <button class="nav-btn" data-nav="box"><span class="nav-icon">🎁</span><span class="nav-label">盲盒</span></button>
+    <button class="nav-btn" data-nav="battle"><span class="nav-icon">⚔️</span><span class="nav-label">试炼</span></button>
+    <button class="nav-btn" data-nav="explore"><span class="nav-icon">🗺️</span><span class="nav-label">秘境</span></button>
+  </div>
+
+</div>
+
+<!-- 浮动提示 -->
+<div class="toast" id="toast"></div>
+<div class="guide" id="guide" style="display:none"></div>
+
+<!-- 揭晓盲盒 -->
+<div class="reveal-overlay" id="revealOverlay">
+  <div class="reveal-card" id="revealCard">
+    <div class="got">✦ 恭 喜 获 得 ✦</div>
+    <div class="item" id="revealItem">🎁</div>
+    <div class="rarity r-N" id="revealRarity">N</div>
+    <div class="name" id="revealName">未知</div>
+    <p style="font-size:12px;color:var(--ink-soft);margin:8px 0">点击任意处继续</p>
+  </div>
+</div>
+
+<!-- 通用弹窗 -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal">
+    <h3 id="modalTitle">提示</h3>
+    <p id="modalText">内容</p>
+    <div class="btn-row" id="modalButtons"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   桃源仙境 · 主程序
+   完全离线运行 · 无外部依赖 · 微信浏览器兼容
+   ========================================================= */
+
+// ====== 数据定义 ======
+const SEEDS = {
+  'wheat':  {name:'灵麦', icon:'🌾', growIcon:['🌱','🌿','🌾'], time:60,  price:5,  sell:12,  exp:2,  rarity:'N'},
+  'corn':   {name:'金穗', icon:'🌽', growIcon:['🌱','🌿','🌽'], time:120, price:15, sell:35,  exp:5,  rarity:'N'},
+  'tomato': {name:'丹果', icon:'🍅', growIcon:['🌱','🌿','🍅'], time:180, price:30, sell:75,  exp:8,  rarity:'R'},
+  'pepper': {name:'赤椒', icon:'🌶️', growIcon:['🌱','🌿','🌶️'], time:240, price:50, sell:130, exp:12, rarity:'R'},
+  'pumpkin':{name:'黄玉瓜',icon:'🎃', growIcon:['🌱','🌿','🎃'], time:360, price:80, sell:220, exp:18, rarity:'SR'},
+  'peach':  {name:'仙桃', icon:'🍑', growIcon:['🌱','🌿','🍑'], time:480, price:120,sell:350, exp:25, rarity:'SR'},
+  'lotus':  {name:'天莲', icon:'🪷', growIcon:['🌱','🌿','🪷'], time:600, price:200,sell:600, exp:40, rarity:'SSR'},
+};
+
+const PETS = {
+  'rabbit': {name:'白玉兔', icon:'🐰', rarity:'N',  hp:60,  atk:8,  def:5,  food:['carrot','wheat'],  desc:'温顺机敏，善于逃跑'},
+  'chick':  {name:'金雏鸡', icon:'🐤', rarity:'N',  hp:50,  atk:10, def:3,  food:['corn','wheat'],   desc:'啄食敌人弱点'},
+  'piggy':  {name:'胖福猪', icon:'🐷', rarity:'N',  hp:90,  atk:6,  def:8,  food:['pumpkin','corn'], desc:'撞击之力惊人'},
+  'fox':    {name:'九尾狐', icon:'🦊', rarity:'R',  hp:70,  atk:14, def:6,  food:['tomato','peach'], desc:'狐火灼烧群敌'},
+  'panda':  {name:'墨竹熊', icon:'🐼', rarity:'R',  hp:110, atk:12, def:10, food:['pumpkin','wheat'],desc:'憨厚但护主心切'},
+  'tiger':  {name:'山君虎', icon:'🐯', rarity:'SR', hp:130, atk:20, def:9,  food:['peach','tomato'], desc:'王者之气，威震八方'},
+  'unicorn':{name:'独角麒麟',icon:'🦄', rarity:'SR', hp:120, atk:18, def:12, food:['lotus','peach'],  desc:'净化世间一切污秽'},
+  'dragon': {name:'青鳞神龙', icon:'🐉', rarity:'SSR',hp:180, atk:28, def:15, food:['lotus','pumpkin'],desc:'传说中的神兽，雷霆万钧'},
+  'phoenix':{name:'朱雀凤凰', icon:'🦅', rarity:'SSR',hp:160, atk:32, def:13, food:['lotus','pepper'], desc:'浴火重生，焚尽天地'},
+};
+
+const FOODS = {
+  'carrot':  {name:'胡萝卜', icon:'🥕', heal:15, exp:2},
+  'wheat':   {name:'灵麦',   icon:'🌾', heal:10, exp:1},
+  'corn':    {name:'金穗',   icon:'🌽', heal:20, exp:3},
+  'tomato':  {name:'丹果',   icon:'🍅', heal:30, exp:5},
+  'pepper':  {name:'赤椒',   icon:'🌶️', heal:25, exp:6},
+  'pumpkin': {name:'黄玉瓜', icon:'🎃', heal:50, exp:10},
+  'peach':   {name:'仙桃',   icon:'🍑', heal:80, exp:15},
+  'lotus':   {name:'天莲',   icon:'🪷', heal:120, exp:25},
+};
+
+const FOES = [
+  {name:'草丛蟾蜍', icon:'🐸', hp:40,  atk:6,  def:2,  reward:{coin:[10,25],  exp:5},  zone:1},
+  {name:'山林毒蛇', icon:'🐍', hp:60,  atk:10, def:3,  reward:{coin:[20,40],  exp:8},  zone:1},
+  {name:'狡猾飞鼠', icon:'🐭', hp:50,  atk:8,  def:4,  reward:{coin:[15,30],  exp:7},  zone:1},
+  {name:'怒目巨蟹', icon:'🦀', hp:90,  atk:12, def:8,  reward:{coin:[40,80],  exp:15, gem:[0,1]}, zone:2},
+  {name:'蝎尾妖虎', icon:'🦂', hp:120, atk:18, def:10, reward:{coin:[60,120], exp:25, gem:[0,1]}, zone:2},
+  {name:'幽冥狼妖', icon:'🐺', hp:150, atk:22, def:12, reward:{coin:[100,200],exp:40, gem:[1,2]}, zone:3},
+  {name:'魔焰山魈', icon:'👹', hp:200, atk:28, def:15, reward:{coin:[150,300],exp:60, gem:[1,3]}, zone:3},
+  {name:'赤睛魔龙', icon:'🐲', hp:300, atk:36, def:20, reward:{coin:[300,500],exp:100,gem:[2,5]}, zone:4},
+];
+
+const ZONES = [
+  {name:'桃林浅滩', emoji:['🌸','🌿','🍓','🐛','🦋','💎','🥕','🪙','🎁','🍄','🌼'], rewards:{coin:[5,30],seeds:['wheat','corn'],gemRate:.05}},
+  {name:'幽谷竹林', emoji:['🎋','🐼','🌿','🍑','🦋','💎','🪙','🎁','🍄','✨','🌸'], rewards:{coin:[15,60],seeds:['tomato','pepper'],gemRate:.12}},
+  {name:'云端仙峰', emoji:['☁️','⛰️','🐉','🦄','💎','🪙','🌟','🎁','🍑','🪷','✨'], rewards:{coin:[30,120],seeds:['pumpkin','peach'],gemRate:.2}},
+  {name:'神域天宫', emoji:['🌌','⭐','💫','🪷','🎁','💎','🐲','🦅','✨','🌟','👑'], rewards:{coin:[80,300],seeds:['peach','lotus'],gemRate:.35}},
+];
+
+const RARITY_WEIGHT = {
+  common:{N:70, R:25, SR:5, SSR:0.5},
+  rare:  {N:15, R:50, SR:30, SSR:5},
+};
+
+// ====== 状态 ======
+let G = {
+  v:1,
+  player:{name:'桃源仙人', lv:1, exp:0, title:'见习农夫'},
+  coin:200, gem:8, energy:20, energyMax:30, lastEnergy:Date.now(),
+  plots: Array.from({length:8},(_,i)=>({id:i, locked:i>=4, state:'wild', seed:null, plantedAt:0, watered:false})),
+  bag:{wheat:5, corn:2, carrot:5},
+  pets:[ /* {id, type, name, lv, exp, hp, hpMax, hunger:0-100} */ ],
+  selectedPet:null,
+  zone:0, zoneLv:1, exploreTiles:[],
+  daily:{lastBox:0},
+};
+
+const LS_KEY = 'taoyuan_save_v1';
+
+function save(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify(G));
+  }catch(e){}
+}
+function load(){
+  try{
+    const s = localStorage.getItem(LS_KEY);
+    if(s){
+      const d = JSON.parse(s);
+      if(d.v===1){ Object.assign(G,d); }
+    }
+  }catch(e){}
+}
+
+// ====== 工具函数 ======
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+
+function toast(msg,type){
+  const t=$('#toast');
+  t.textContent=msg;
+  t.className='toast show';
+  if(type==='gold')t.style.background='linear-gradient(180deg,#e8b86b,#c69143)';
+  else if(type==='red')t.style.background='linear-gradient(180deg,#d44a3c,#a83828)';
+  else t.style.background='rgba(58,40,32,.92)';
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>t.className='toast',2400);
+}
+
+function modal(title,text,buttons){
+  $('#modalTitle').textContent=title;
+  $('#modalText').innerHTML=text;
+  const bs=$('#modalButtons');
+  bs.innerHTML='';
+  (buttons||[{text:'确定',cls:''}]).forEach(b=>{
+    const btn=document.createElement('button');
+    btn.className='btn '+(b.cls||'');
+    btn.textContent=b.text;
+    btn.onclick=()=>{$('#modalBg').classList.remove('show');b.cb&&b.cb();};
+    bs.appendChild(btn);
+  });
+  $('#modalBg').classList.add('show');
+}
+
+function showGuide(text,duration=3000){
+  const g=$('#guide');
+  g.textContent=text;
+  g.style.display='block';
+  clearTimeout(showGuide._t);
+  showGuide._t=setTimeout(()=>g.style.display='none',duration);
+}
+
+// 樱花飘落
+function spawnPetals(){
+  const c=$('#petals');
+  c.style.position='fixed';c.style.inset='0';c.style.pointerEvents='none';c.style.zIndex='2';c.style.overflow='hidden';
+  const emojis=['🌸','🌸','🌸','🌺','✿'];
+  for(let i=0;i<14;i++){
+    const p=document.createElement('div');
+    p.className='petal';
+    p.textContent=pick(emojis);
+    p.style.left=Math.random()*100+'%';
+    p.style.animationDuration=(8+Math.random()*8)+'s';
+    p.style.animationDelay=(-Math.random()*15)+'s';
+    p.style.fontSize=(10+Math.random()*8)+'px';
+    c.appendChild(p);
+  }
+}
+
+// 体力恢复
+function tickEnergy(){
+  const now=Date.now();
+  const elapsed=now-G.lastEnergy;
+  const gain=Math.floor(elapsed/120000); // 每2分钟+1
+  if(gain>0 && G.energy<G.energyMax){
+    G.energy=Math.min(G.energyMax,G.energy+gain);
+    G.lastEnergy=now;
+    updateTopbar();
+    save();
+  }
+}
+
+// 经验/升级
+function addExp(n){
+  G.player.exp+=n;
+  let need=G.player.lv*20;
+  while(G.player.exp>=need){
+    G.player.exp-=need;
+    G.player.lv++;
+    G.energyMax+=2;
+    G.energy=G.energyMax;
+    const titles=['见习农夫','田园学徒','耕作能手','灵田大师','桃源贤者','仙界圣人','天地之主'];
+    G.player.title=titles[Math.min(titles.length-1,Math.floor(G.player.lv/3))];
+    toast('🎉 升级! Lv.'+G.player.lv+' '+G.player.title,'gold');
+    need=G.player.lv*20;
+  }
+  updateTopbar();
+}
+
+// ====== 顶部状态栏 ======
+function updateTopbar(){
+  $('#playerName').textContent=G.player.name;
+  $('#playerLv').textContent=G.player.lv;
+  $('#playerTitle').textContent=G.player.title;
+  $('#coinTxt').textContent=G.coin;
+  $('#gemTxt').textContent=G.gem;
+  $('#energyTxt').textContent=G.energy+'/'+G.energyMax;
+  $('#energyFill').style.width=(G.energy/G.energyMax*100)+'%';
+}
+
+// ====== 导航 ======
+$$('.nav-btn').forEach(b=>{
+  b.onclick=()=>{
+    const t=b.dataset.nav;
+    $$('.nav-btn').forEach(x=>x.classList.toggle('active',x===b));
+    $$('.scene').forEach(s=>s.classList.toggle('active',s.dataset.scene===t));
+    onSceneChange(t);
+  };
+});
+
+function onSceneChange(t){
+  if(t==='farm')renderFarm();
+  if(t==='pet')renderPets();
+  if(t==='box')renderBox();
+  if(t==='battle')renderBattle();
+  if(t==='explore')renderExplore();
+}
+
+// ====== 农场系统 ======
+let currentTool='hoe';
+
+$$('.tool').forEach(t=>{
+  t.onclick=()=>{
+    $$('.tool').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    currentTool=t.dataset.tool;
+    showGuide({hoe:'⛏️ 点击荒地开垦',water:'💧 点击作物浇水',harvest:'🧺 点击金光作物收获'}[currentTool]);
+  };
+});
+$('.tool[data-tool=hoe]').classList.add('active');
+
+function renderFarm(){
+  const grid=$('#farmGrid');
+  grid.innerHTML='';
+  let ripe=0;
+  G.plots.forEach((p,i)=>{
+    const el=document.createElement('div');
+    el.className='plot';
+    el.dataset.idx=i;
+    if(p.locked){
+      el.classList.add('locked');
+      el.title='荒地·消耗5体力开荒';
+    }else if(p.state==='wild'){
+      el.style.background='linear-gradient(135deg,#a8956d,#7b6f47)';
+      el.innerHTML='<span style="font-size:24px;opacity:.7">🌿</span>';
+      el.title='点击开垦';
+    }else if(p.state==='tilled'){
+      el.classList.add('tilled');
+      el.innerHTML='<span style="font-size:0">.</span>';
+      el.title='拖入种子播种';
+    }else if(p.state==='planted'){
+      el.classList.add('planted');
+      if(p.watered)el.classList.add('watered');
+      const seed=SEEDS[p.seed];
+      const elapsed=(Date.now()-p.plantedAt)/1000 * (p.watered?1.6:1);
+      const stage=Math.min(2, Math.floor(elapsed/(seed.time/3)));
+      const pct=Math.min(100,Math.floor(elapsed/seed.time*100));
+      const remain=Math.max(0,seed.time-Math.floor(elapsed));
+      el.innerHTML=`<span class="crop">${seed.growIcon[stage]}</span>${pct<100?`<span class="timer">${remain>60?Math.ceil(remain/60)+"'":remain+'s'}</span>`:''}`;
+      if(pct>=100){el.classList.add('ripe');ripe++;el.title='长按收获!'}
+    }
+    grid.appendChild(el);
+    bindPlotEvents(el,i);
+  });
+  $('#ripeCount').textContent=ripe;
+  $('#totalPlot').textContent=G.plots.filter(p=>!p.locked).length;
+  renderSeedBag();
+}
+
+function bindPlotEvents(el,idx){
+  // 长按收获
+  let pressTimer=null,pressed=false;
+  const startPress=(e)=>{
+    pressed=false;
+    pressTimer=setTimeout(()=>{
+      pressed=true;
+      const p=G.plots[idx];
+      if(p.state==='planted'){
+        const seed=SEEDS[p.seed];
+        const elapsed=(Date.now()-p.plantedAt)/1000*(p.watered?1.6:1);
+        if(elapsed>=seed.time){
+          harvestPlot(idx);
+        }
+      }
+    },500);
+  };
+  const endPress=(e)=>{
+    if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}
+    if(!pressed){
+      handlePlotTap(idx);
+    }
+  };
+  el.addEventListener('touchstart',startPress,{passive:true});
+  el.addEventListener('touchend',endPress);
+  el.addEventListener('touchcancel',endPress);
+  el.addEventListener('mousedown',startPress);
+  el.addEventListener('mouseup',endPress);
+  el.addEventListener('mouseleave',()=>{if(pressTimer){clearTimeout(pressTimer);pressTimer=null}});
+}
+
+function handlePlotTap(idx){
+  const p=G.plots[idx];
+  if(p.locked){
+    // 开荒
+    if(G.energy<5){toast('体力不足，需5⚡','red');return}
+    modal('开荒新田','投入<strong>5⚡体力</strong>开拓此地?<br>开荒后获得新耕作地块。',[
+      {text:'确认开荒',cls:'gold',cb:()=>{
+        G.energy-=5; p.locked=false; p.state='wild';
+        addExp(3);
+        toast('🌱 开荒成功!获得新耕地','gold');
+        updateTopbar(); save(); renderFarm();
+      }},
+      {text:'取消',cls:''}
+    ]);
+    return;
+  }
+  if(p.state==='wild'){
+    if(currentTool==='hoe'){
+      p.state='tilled';
+      addExp(1);
+      toast('⛏️ 翻土完成');
+      save();renderFarm();
+    }else{toast('需选择⛏️锄头工具')}
+  }else if(p.state==='tilled'){
+    toast('拖拽种子袋的种子播种');
+  }else if(p.state==='planted'){
+    const seed=SEEDS[p.seed];
+    const elapsed=(Date.now()-p.plantedAt)/1000*(p.watered?1.6:1);
+    if(elapsed>=seed.time){
+      if(currentTool==='harvest')harvestPlot(idx);
+      else toast('🌟 已成熟!长按收获或选🧺工具');
+    }else{
+      if(currentTool==='water'){
+        if(p.watered){toast('已浇过水了')}
+        else{
+          p.watered=true;
+          spawnDropEffect(idx);
+          toast('💧 浇水成功!生长加速60%');
+          save();renderFarm();
+        }
+      }else{
+        const remain=Math.max(0,seed.time-Math.floor(elapsed));
+        toast(`${seed.name} 还需${remain>60?Math.ceil(remain/60)+'分':remain+'秒'}`);
+      }
+    }
+  }
+}
+
+function harvestPlot(idx){
+  const p=G.plots[idx];
+  const seed=SEEDS[p.seed];
+  const yield_=rand(1,3);
+  G.bag[p.seed]=(G.bag[p.seed]||0)+yield_;
+  G.coin+=Math.floor(seed.sell*yield_*.5);
+  addExp(seed.exp);
+  spawnHarvestEffect(idx,seed.icon,yield_);
+  toast(`🧺 收获${yield_}个${seed.name}! +${Math.floor(seed.sell*yield_*.5)}🪙`,'gold');
+  p.state='wild';p.seed=null;p.plantedAt=0;p.watered=false;
+  updateTopbar();save();renderFarm();
+}
+
+function spawnDropEffect(idx){
+  const el=$('.plot[data-idx="'+idx+'"]');
+  if(!el)return;
+  for(let i=0;i<3;i++){
+    const d=document.createElement('div');
+    d.style.cssText='position:absolute;font-size:18px;pointer-events:none;left:'+(Math.random()*70+10)+'%;top:0;animation:dropDown 0.8s ease-out forwards;z-index:5';
+    d.textContent='💧';
+    el.appendChild(d);
+    setTimeout(()=>d.remove(),800);
+  }
+  if(!document.querySelector('#dropDownStyle')){
+    const s=document.createElement('style');s.id='dropDownStyle';
+    s.textContent='@keyframes dropDown{0%{opacity:0;transform:translateY(-10px)}30%{opacity:1}100%{opacity:0;transform:translateY(40px)}}';
+    document.head.appendChild(s);
+  }
+}
+
+function spawnHarvestEffect(idx,icon,n){
+  const el=$('.plot[data-idx="'+idx+'"]');
+  if(!el)return;
+  for(let i=0;i<n+2;i++){
+    const d=document.createElement('div');
+    const ang=Math.random()*Math.PI*2;
+    const dist=30+Math.random()*40;
+    d.style.cssText=`position:absolute;font-size:22px;pointer-events:none;left:50%;top:50%;
+      --dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist-30}px;
+      animation:harvBurst 1s ease-out forwards;z-index:10`;
+    d.textContent=i<n?icon:pick(['✨','⭐','🌟']);
+    el.appendChild(d);
+    setTimeout(()=>d.remove(),1000);
+  }
+  if(!document.querySelector('#harvBurstStyle')){
+    const s=document.createElement('style');s.id='harvBurstStyle';
+    s.textContent='@keyframes harvBurst{0%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy)))}}';
+    document.head.appendChild(s);
+  }
+}
+
+function renderSeedBag(){
+  const bag=$('#seedBag');
+  bag.innerHTML='';
+  const seeds=Object.keys(SEEDS);
+  seeds.forEach(k=>{
+    const cnt=G.bag[k]||0;
+    const s=SEEDS[k];
+    const el=document.createElement('div');
+    el.className='inv-item'+(cnt>0?'':' empty');
+    el.dataset.seed=k;
+    el.innerHTML=`<div class="ico">${s.icon}</div><div class="nm">${s.name}</div>${cnt>0?`<div class="ct">${cnt}</div>`:''}`;
+    if(cnt>0)bindSeedDrag(el,k);
+    bag.appendChild(el);
+  });
+}
+
+// 拖拽种子 - 使用统一的拖拽管理避免内存泄漏
+let _drag = null;
+
+function setupGlobalDrag(){
+  document.addEventListener('mousemove', e => {
+    if (_drag) _drag.move(e);
+  });
+  document.addEventListener('mouseup', e => {
+    if (_drag) { const d = _drag; _drag = null; d.end(e); }
+  });
+  document.addEventListener('touchmove', e => {
+    if (_drag) _drag.move(e);
+  }, { passive: false });
+}
+setupGlobalDrag();
+
+function makeDraggable(el, payload){
+  // payload: {icon, onDrop(target,clientX,clientY), getDropTargets()}
+  let ghost = null, startX = 0, startY = 0, dragging = false;
+  
+  const begin = e => {
+    const t = e.touches ? e.touches[0] : e;
+    startX = t.clientX; startY = t.clientY; dragging = false;
+    if (e.cancelable) e.preventDefault();
+    _drag = { move: handleMove, end: handleEnd };
+  };
+  
+  const handleMove = e => {
+    const t = e.touches ? e.touches[0] : e;
+    if (!dragging) {
+      if (Math.abs(t.clientX-startX) + Math.abs(t.clientY-startY) > 6) {
+        dragging = true;
+        ghost = document.createElement('div');
+        ghost.className = 'drag-ghost';
+        ghost.textContent = payload.icon;
+        document.body.appendChild(ghost);
+        el.classList.add('dragging');
+      }
+    }
+    if (dragging) {
+      ghost.style.left = t.clientX + 'px';
+      ghost.style.top = t.clientY + 'px';
+      const targets = payload.getDropTargets();
+      targets.forEach(tg => {
+        const r = tg.el.getBoundingClientRect();
+        const over = t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom;
+        tg.el.classList.toggle('dragover', over && tg.valid);
+      });
+      if (e.cancelable) e.preventDefault();
+    }
+  };
+  
+  const handleEnd = e => {
+    if (dragging) {
+      const t = e.changedTouches ? e.changedTouches[0] : e;
+      let dropped = false;
+      const targets = payload.getDropTargets();
+      targets.forEach(tg => {
+        const r = tg.el.getBoundingClientRect();
+        if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) {
+          if (tg.valid) { payload.onDrop(tg, t.clientX, t.clientY); dropped = true; }
+        }
+        tg.el.classList.remove('dragover');
+      });
+      if (ghost) ghost.remove();
+      ghost = null;
+      el.classList.remove('dragging');
+      if (!dropped && payload.onMissed) payload.onMissed();
+    }
+    dragging = false;
+  };
+  
+  el.addEventListener('touchstart', begin, { passive: false });
+  el.addEventListener('mousedown', begin);
+  // touchend 在元素上保留以处理快速点击的取消
+  el.addEventListener('touchend', e => { if (_drag) { const d = _drag; _drag = null; d.end(e); } });
+}
+
+function bindSeedDrag(el, seed){
+  makeDraggable(el, {
+    icon: SEEDS[seed].icon,
+    getDropTargets: () => [...$$('.farm-grid .plot')].map(p => ({
+      el: p,
+      idx: +p.dataset.idx,
+      valid: G.plots[+p.dataset.idx].state === 'tilled'
+    })),
+    onDrop: tg => plantSeed(tg.idx, seed),
+    onMissed: () => toast('需先用⛏️开垦耕地')
+  });
+}
+
+function plantSeed(idx,seed){
+  if((G.bag[seed]||0)<=0){toast('种子不足');return}
+  G.bag[seed]--;
+  const p=G.plots[idx];
+  p.state='planted';p.seed=seed;p.plantedAt=Date.now();p.watered=false;
+  toast(`🌱 播种${SEEDS[seed].name}!`);
+  save();renderFarm();
+}
+
+// 农场更新循环
+setInterval(()=>{
+  if($('.scene[data-scene="farm"]').classList.contains('active')){
+    renderFarm();
+  }
+  tickEnergy();
+},1000);
+
+// ====== 宠物系统 ======
+function renderPets(){
+  const stage=$('#petStage');
+  stage.innerHTML='';
+  if(G.pets.length===0){
+    stage.innerHTML='<div style="margin:auto;text-align:center;color:rgba(94,55,40,.6);font-size:13px;padding:20px">暂无灵兽<br>去<strong style="color:var(--vermilion)">盲盒</strong>开启获得吧!</div>';
+  }
+  G.pets.forEach((p,i)=>{
+    const def=PETS[p.type];
+    const el=document.createElement('div');
+    el.className='pet'+(p.id===G.selectedPet?' selected':'')+(p.hunger<30?' happy':'');
+    el.dataset.petId=p.id;
+    el.innerHTML=`
+      <div class="hb"><div class="hb-fill" style="width:${100-p.hunger}%"></div></div>
+      <div class="body">${def.icon}</div>
+      <div class="nm-tag">${p.name}<span class="lvl"> Lv${p.lv}</span></div>
+    `;
+    stage.appendChild(el);
+    bindPetEvents(el,p);
+  });
+  renderPetDetail();
+  renderPetActions();
+  renderFoodBag();
+}
+
+function bindPetEvents(el,pet){
+  el.onclick=()=>{
+    G.selectedPet=pet.id;
+    renderPets();
+  };
+}
+
+function renderPetDetail(){
+  const d=$('#petDetail');
+  if(!G.selectedPet){d.innerHTML='<div style="text-align:center;color:var(--ink-soft);font-size:12px">点击宠物查看详情</div>';return}
+  const p=G.pets.find(x=>x.id===G.selectedPet);
+  if(!p){d.innerHTML='';return}
+  const def=PETS[p.type];
+  d.innerHTML=`
+    <div class="row"><strong>${def.icon} ${p.name}</strong> <span class="rarity r-${def.rarity}" style="display:inline-block;padding:1px 8px;border-radius:8px;font-size:10px;color:#fff">${def.rarity}</span></div>
+    <div class="row"><span>等级</span><strong>Lv ${p.lv}</strong></div>
+    <div class="row"><span>经验</span><strong>${p.exp}/${p.lv*15}</strong></div>
+    <div class="row"><span>生命</span><strong>${p.hp}/${p.hpMax} ❤️</strong></div>
+    <div class="row"><span>攻击</span><strong>${def.atk+(p.lv-1)*2} ⚔️</strong></div>
+    <div class="row"><span>防御</span><strong>${def.def+(p.lv-1)} 🛡️</strong></div>
+    <div class="row"><span>饥饿度</span><strong>${p.hunger.toFixed(0)}/100 🍖</strong></div>
+    <div class="row"><span>偏爱食物</span><strong>${def.food.map(f=>FOODS[f].icon).join(' ')}</strong></div>
+    <div style="font-size:11px;color:var(--ink-soft);margin-top:5px;text-align:center;font-style:italic">"${def.desc}"</div>
+  `;
+}
+
+function renderPetActions(){
+  const a=$('#petActions');
+  if(!G.selectedPet){a.innerHTML='';return}
+  a.innerHTML=`
+    <button class="btn" onclick="petPlay()">🎾 抚摸 (减饥饿)</button>
+    <button class="btn jade" onclick="petBattleSet()">⚔️ 出战</button>
+    <button class="btn gold" onclick="petRelease()" style="background:linear-gradient(180deg,#888,#555);box-shadow:0 3px 0 #444,var(--shadow-soft)">↩️ 放归</button>
+  `;
+}
+
+function renderFoodBag(){
+  const bag=$('#foodBag');
+  bag.innerHTML='';
+  Object.keys(FOODS).forEach(k=>{
+    const cnt=G.bag[k]||0;
+    const f=FOODS[k];
+    const el=document.createElement('div');
+    el.className='inv-item'+(cnt>0?'':' empty');
+    el.dataset.food=k;
+    el.innerHTML=`<div class="ico">${f.icon}</div><div class="nm">${f.name}</div>${cnt>0?`<div class="ct">${cnt}</div>`:''}`;
+    if(cnt>0)bindFoodDrag(el,k);
+    bag.appendChild(el);
+  });
+}
+
+function bindFoodDrag(el, food){
+  makeDraggable(el, {
+    icon: FOODS[food].icon,
+    getDropTargets: () => [...$$('.pet')].map(p => ({
+      el: p,
+      petId: +p.dataset.petId,
+      valid: true
+    })),
+    onDrop: tg => {
+      const pet = G.pets.find(x => x.id === tg.petId);
+      if (pet) feedPet(pet, food);
+    },
+    onMissed: () => toast('请拖到宠物身上')
+  });
+}
+
+function feedPet(pet,food){
+  if((G.bag[food]||0)<=0)return;
+  G.bag[food]--;
+  const f=FOODS[food];
+  const def=PETS[pet.type];
+  const isPref=def.food.includes(food);
+  const expGain=isPref?f.exp*2:f.exp;
+  const healAmt=isPref?f.heal*1.5:f.heal;
+  pet.hunger=Math.max(0,pet.hunger-healAmt);
+  pet.hp=Math.min(pet.hpMax,pet.hp+healAmt*.5);
+  pet.exp+=expGain;
+  // 升级
+  while(pet.exp>=pet.lv*15){
+    pet.exp-=pet.lv*15;
+    pet.lv++;
+    pet.hpMax+=def.hp/10|0;
+    pet.hp=pet.hpMax;
+    toast(`🎉 ${pet.name}升级! Lv.${pet.lv}`,'gold');
+  }
+  toast(`${isPref?'❤️偏爱':'😋'}+${f.heal}饱食 +${expGain}经验`);
+  // 心心
+  const petEl=$('.pet[data-pet-id="'+pet.id+'"]');
+  if(petEl){
+    const h=document.createElement('div');h.className='heart';h.textContent=isPref?'💕':'❤️';
+    petEl.appendChild(h);
+    setTimeout(()=>h.remove(),1000);
+  }
+  save();renderPets();
+}
+
+window.petPlay=()=>{
+  const p=G.pets.find(x=>x.id===G.selectedPet);
+  if(!p)return;
+  if(G.energy<1){toast('体力不足','red');return}
+  G.energy--;
+  p.hunger=Math.max(0,p.hunger-15);
+  p.exp+=2;
+  while(p.exp>=p.lv*15){p.exp-=p.lv*15;p.lv++;p.hpMax+=PETS[p.type].hp/10|0;p.hp=p.hpMax;toast(`🎉 ${p.name}升级!`,'gold')}
+  toast('🎾 '+p.name+' 好开心!❤️');
+  updateTopbar();save();renderPets();
+};
+
+window.petBattleSet=()=>{
+  G.battlePet=G.selectedPet;
+  toast('已设为出战灵兽⚔️');
+  save();
+};
+
+window.petRelease=()=>{
+  const p=G.pets.find(x=>x.id===G.selectedPet);
+  if(!p)return;
+  modal('放归灵兽',`确定要将<strong>${p.name}</strong>放归山林吗?<br>可获得<strong>${p.lv*10}🪙</strong>作为回报。`,[
+    {text:'确定放归',cls:'',cb:()=>{
+      G.coin+=p.lv*10;
+      G.pets=G.pets.filter(x=>x.id!==p.id);
+      if(G.battlePet===p.id)G.battlePet=null;
+      G.selectedPet=G.pets[0]?.id||null;
+      toast(`已放归,获得${p.lv*10}🪙`);
+      updateTopbar();save();renderPets();
+    }},
+    {text:'我再想想',cls:'gold'}
+  ]);
+};
+
+// 宠物饥饿模拟
+setInterval(()=>{
+  G.pets.forEach(p=>{
+    p.hunger=Math.min(100,p.hunger+0.3);
+  });
+  if($('.scene[data-scene="pet"]').classList.contains('active'))renderPets();
+},5000);
+
+// ====== 盲盒系统 ======
+let currentBoxType='common';
+let isCharging=false,chargeAmount=0,chargeTimer=null;
+
+function renderBox(){
+  // 高亮选项
+  $$('.box-option').forEach(o=>{
+    o.classList.toggle('selected',o.dataset.box===currentBoxType);
+  });
+}
+
+$$('.box-option').forEach(o=>{
+  o.onclick=()=>{currentBoxType=o.dataset.box;renderBox();}
+});
+
+const boxDisp=$('#boxDisplay');
+function startCharge(e){
+  if(isCharging)return;
+  e.preventDefault();
+  isCharging=true;chargeAmount=0;
+  boxDisp.classList.add('shaking');
+  $('#pullHint').textContent='继续按住...✨';
+  chargeTimer=setInterval(()=>{
+    chargeAmount+=4;
+    if(chargeAmount>=100){
+      clearInterval(chargeTimer);
+      releaseBox();
+    }
+  },25);
+}
+function endCharge(){
+  if(!isCharging)return;
+  if(chargeAmount<100){
+    boxDisp.classList.remove('shaking');
+    $('#pullHint').textContent='长按宝盒蓄力开启 ⌛';
+    clearInterval(chargeTimer);
+    chargeAmount=0;
+  }
+  isCharging=false;
+}
+
+boxDisp.addEventListener('touchstart',startCharge,{passive:false});
+boxDisp.addEventListener('touchend',endCharge);
+boxDisp.addEventListener('touchcancel',endCharge);
+boxDisp.addEventListener('mousedown',startCharge);
+boxDisp.addEventListener('mouseup',endCharge);
+boxDisp.addEventListener('mouseleave',endCharge);
+
+function releaseBox(){
+  isCharging=false;
+  // 检查货币
+  if(currentBoxType==='common'){
+    if(G.coin<50){toast('金币不足!需50🪙','red');boxDisp.classList.remove('shaking');return}
+    G.coin-=50;
+  }else{
+    if(G.gem<5){toast('灵石不足!需5💎','red');boxDisp.classList.remove('shaking');return}
+    G.gem-=5;
+  }
+  updateTopbar();
+  // 开盒动画
+  boxDisp.classList.remove('shaking');
+  boxDisp.classList.add('opening');
+  $('#pullHint').textContent='✨ 开启中... ✨';
+  setTimeout(()=>{
+    boxDisp.classList.remove('opening');
+    boxDisp.querySelector('.box').style.cssText='';
+    // 抽取
+    const result=drawBox(currentBoxType);
+    showReveal(result);
+    save();
+  },800);
+}
+
+function drawBox(type){
+  const weights=RARITY_WEIGHT[type];
+  const total=Object.values(weights).reduce((a,b)=>a+b,0);
+  let r=Math.random()*total;
+  let rarity='N';
+  for(const k of ['SSR','SR','R','N']){
+    if((r-=weights[k])<=0){rarity=k;break;}
+  }
+  // 30% 出宠物 / 70% 出种子
+  if(Math.random()<.35){
+    const candidates=Object.keys(PETS).filter(k=>PETS[k].rarity===rarity);
+    if(candidates.length){
+      const t=pick(candidates);
+      const def=PETS[t];
+      const newPet={id:Date.now()+Math.random(), type:t, name:def.name, lv:1, exp:0, hp:def.hp, hpMax:def.hp, hunger:0};
+      G.pets.push(newPet);
+      if(!G.selectedPet)G.selectedPet=newPet.id;
+      if(!G.battlePet)G.battlePet=newPet.id;
+      return {kind:'pet',rarity,name:def.name,icon:def.icon};
+    }
+  }
+  // 种子
+  const seedCandidates=Object.keys(SEEDS).filter(k=>SEEDS[k].rarity===rarity);
+  if(seedCandidates.length){
+    const t=pick(seedCandidates);
+    const cnt=rarity==='N'?rand(3,8):rarity==='R'?rand(2,4):rarity==='SR'?rand(1,2):1;
+    G.bag[t]=(G.bag[t]||0)+cnt;
+    return {kind:'seed',rarity,name:`${SEEDS[t].name}种×${cnt}`,icon:SEEDS[t].icon};
+  }
+  // 兜底:金币
+  const c=rarity==='N'?50:rarity==='R'?200:rarity==='SR'?500:1500;
+  G.coin+=c;
+  return {kind:'coin',rarity,name:`金币×${c}`,icon:'🪙'};
+}
+
+function showReveal(r){
+  $('#revealItem').textContent=r.icon;
+  $('#revealName').textContent=r.name;
+  const rEl=$('#revealRarity');
+  rEl.textContent=r.rarity;
+  rEl.className='rarity r-'+r.rarity;
+  $('#revealOverlay').classList.add('show');
+  // 礼花
+  const card=$('#revealCard');
+  card.querySelectorAll('.confetti').forEach(c=>c.remove());
+  const colors=['🎉','🎊','✨','⭐','💫','🌟'];
+  for(let i=0;i<(r.rarity==='SSR'?28:r.rarity==='SR'?18:10);i++){
+    const c=document.createElement('div');
+    c.className='confetti';
+    c.textContent=pick(colors);
+    const ang=Math.random()*Math.PI*2;
+    const dist=120+Math.random()*180;
+    c.style.cssText=`left:50%;top:50%;--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;animation-delay:${Math.random()*.2}s`;
+    card.appendChild(c);
+  }
+  toast('🎁 '+r.name+' 入手!','gold');
+  $('#pullHint').textContent='长按宝盒蓄力开启 ⌛';
+}
+
+$('#revealOverlay').onclick=()=>$('#revealOverlay').classList.remove('show');
+
+// ====== 战斗系统 ======
+let battle=null;
+
+function renderBattle(){
+  const pet=G.pets.find(x=>x.id===G.battlePet) || G.pets[0];
+  if(!pet){
+    $('#heroCh').textContent='❓';
+    $('#heroName').textContent='无伙伴';
+    $('#heroHpTxt').textContent='--';
+    $('#heroHp').style.width='0%';
+    return;
+  }
+  if(!G.battlePet)G.battlePet=pet.id;
+  const def=PETS[pet.type];
+  $('#heroCh').textContent=def.icon;
+  $('#heroName').textContent=`${pet.name} Lv.${pet.lv}`;
+  $('#heroHpTxt').textContent=`${pet.hp.toFixed(0)}/${pet.hpMax}`;
+  $('#heroHp').style.width=(pet.hp/pet.hpMax*100)+'%';
+  // 隐藏敌人
+  if(!battle){
+    $('#foeCh').textContent='💤';
+    $('#foeName').textContent='等待挑战';
+    $('#foeHpTxt').textContent='--';
+    $('#foeHp').style.width='0%';
+  }
+}
+
+$('#startBattleBtn').onclick=()=>{
+  if(G.energy<5){toast('体力不足!需5⚡','red');return}
+  const pet=G.pets.find(x=>x.id===G.battlePet);
+  if(!pet){toast('请先获得灵兽','red');return}
+  if(pet.hp<=10){toast('灵兽体力不足,先喂食回血','red');return}
+  G.energy-=5;
+  // 选敌
+  const zoneFoes=FOES.filter(f=>f.zone<=Math.min(4,1+Math.floor(G.player.lv/3)));
+  const foe=pick(zoneFoes);
+  battle={
+    foe:{...foe,hpMax:foe.hp,hp:foe.hp},
+    pet,
+    turn:'hero',
+    over:false,
+  };
+  $('#foeCh').textContent=foe.icon;
+  $('#foeName').textContent=foe.name;
+  $('#foeHpTxt').textContent=`${foe.hp}/${foe.hpMax}`;
+  $('#foeHp').style.width='100%';
+  $('#battleLog').innerHTML='<p>⚔️ <strong>'+foe.name+'</strong> 出现了!</p>';
+  $('#atkBtn').disabled=false;
+  $('#defBtn').disabled=false;
+  $('#fleeBtn').disabled=false;
+  toast('战斗开始!');
+  updateTopbar();save();
+};
+
+$('#changePetBtn').onclick=()=>{
+  if(G.pets.length<=1){toast('只有一只灵兽');return}
+  const list=G.pets.map(p=>{
+    const def=PETS[p.type];
+    return `<button class="btn ${p.id===G.battlePet?'gold':'jade'} small" style="margin:3px" onclick="setBattlePet(${p.id})">${def.icon} ${p.name} Lv.${p.lv}</button>`;
+  }).join('');
+  modal('选择出战灵兽',`<div style="display:flex;flex-wrap:wrap;justify-content:center">${list}</div>`,[{text:'关闭',cls:''}]);
+};
+
+window.setBattlePet=(id)=>{
+  G.battlePet=id;
+  $('#modalBg').classList.remove('show');
+  toast('已更换出战灵兽');
+  save();renderBattle();
+};
+
+function logBattle(msg){
+  const log=$('#battleLog');
+  log.innerHTML+=`<p>${msg}</p>`;
+  log.scrollTop=log.scrollHeight;
+}
+
+function petAttack(power=1,crit=false){
+  if(!battle||battle.over)return;
+  const pet=battle.pet;
+  const def=PETS[pet.type];
+  const atk=def.atk+(pet.lv-1)*2;
+  const dmg=Math.max(1,Math.floor((atk*power - battle.foe.def*.5)*(.85+Math.random()*.3)));
+  const finalDmg=crit?dmg*2:dmg;
+  battle.foe.hp=Math.max(0,battle.foe.hp-finalDmg);
+  $('#foeHp').style.width=(battle.foe.hp/battle.foe.hpMax*100)+'%';
+  $('#foeHpTxt').textContent=`${battle.foe.hp}/${battle.foe.hpMax}`;
+  showDmg('foe',finalDmg,crit);
+  $('#heroFighter').classList.add('attacking');
+  setTimeout(()=>$('#heroFighter').classList.remove('attacking'),400);
+  setTimeout(()=>$('#foeFighter').classList.add('hurt'),200);
+  setTimeout(()=>$('#foeFighter').classList.remove('hurt'),600);
+  logBattle(`💥 ${pet.name}对${battle.foe.name}造成${finalDmg}伤害${crit?' 暴击!':''}`);
+  if(battle.foe.hp<=0){
+    setTimeout(winBattle,800);
+  }else{
+    setTimeout(foeAttack,800);
+  }
+}
+
+function foeAttack(){
+  if(!battle||battle.over)return;
+  battle.turn='foe';
+  $('#atkBtn').disabled=true;$('#defBtn').disabled=true;$('#fleeBtn').disabled=true;
+  const def=PETS[battle.pet.type];
+  const petDef=def.def+(battle.pet.lv-1);
+  let dmg=Math.max(1,Math.floor((battle.foe.atk - petDef*.4)*(.85+Math.random()*.3)));
+  if(battle.defending){dmg=Math.floor(dmg*.4);battle.defending=false;}
+  battle.pet.hp=Math.max(0,battle.pet.hp-dmg);
+  $('#heroHp').style.width=(battle.pet.hp/battle.pet.hpMax*100)+'%';
+  $('#heroHpTxt').textContent=`${battle.pet.hp.toFixed(0)}/${battle.pet.hpMax}`;
+  showDmg('hero',dmg);
+  $('#foeFighter').classList.add('attacking');
+  setTimeout(()=>$('#foeFighter').classList.remove('attacking'),400);
+  setTimeout(()=>$('#heroFighter').classList.add('hurt'),200);
+  setTimeout(()=>$('#heroFighter').classList.remove('hurt'),600);
+  logBattle(`💢 ${battle.foe.name}对${battle.pet.name}造成${dmg}伤害`);
+  if(battle.pet.hp<=0){
+    setTimeout(loseBattle,800);
+  }else{
+    setTimeout(()=>{
+      battle.turn='hero';
+      $('#atkBtn').disabled=false;$('#defBtn').disabled=false;$('#fleeBtn').disabled=false;
+      renderBattle();save();
+    },1000);
+  }
+}
+
+function showDmg(side,n,crit){
+  const f=side==='foe'?$('#foeFighter'):$('#heroFighter');
+  const d=document.createElement('div');
+  d.className='dmg-num'+(crit?' crit':'');
+  d.textContent='-'+n+(crit?'!!':'');
+  f.appendChild(d);
+  setTimeout(()=>d.remove(),1000);
+}
+
+function winBattle(){
+  battle.over=true;
+  const r=battle.foe.reward;
+  const coin=rand(r.coin[0],r.coin[1]);
+  G.coin+=coin;
+  addExp(r.exp);
+  battle.pet.exp+=r.exp;
+  while(battle.pet.exp>=battle.pet.lv*15){
+    battle.pet.exp-=battle.pet.lv*15;
+    battle.pet.lv++;
+    battle.pet.hpMax+=PETS[battle.pet.type].hp/10|0;
+    battle.pet.hp=battle.pet.hpMax;
+    logBattle(`🎉 ${battle.pet.name}升级到Lv.${battle.pet.lv}!`);
+  }
+  let gem=0;
+  if(r.gem){gem=rand(r.gem[0],r.gem[1]);G.gem+=gem;}
+  $('#foeFighter').classList.add('defeated');
+  logBattle(`🏆 胜利!获得${coin}🪙${gem?` ${gem}💎`:''} ${r.exp}经验`);
+  toast(`🏆 战胜!+${coin}🪙${gem?` +${gem}💎`:''}`,'gold');
+  setTimeout(()=>{
+    $('#foeFighter').classList.remove('defeated');
+    $('#foeCh').textContent='🌟';
+    $('#foeName').textContent='已获胜!';
+    battle=null;
+    updateTopbar();save();renderBattle();
+  },1500);
+}
+
+function loseBattle(){
+  battle.over=true;
+  $('#heroFighter').classList.add('defeated');
+  logBattle(`😵 ${battle.pet.name}败北了...请喂食恢复`);
+  toast('战败，灵兽需休养','red');
+  setTimeout(()=>{
+    $('#heroFighter').classList.remove('defeated');
+    battle=null;
+    save();renderBattle();
+  },1500);
+}
+
+$('#atkBtn').onclick=()=>{
+  if(!battle||battle.over||battle.turn!=='hero')return;
+  petAttack(1,Math.random()<.15);
+};
+$('#defBtn').onclick=()=>{
+  if(!battle||battle.over||battle.turn!=='hero')return;
+  battle.defending=true;
+  battle.pet.hp=Math.min(battle.pet.hpMax,battle.pet.hp+battle.pet.hpMax*.1);
+  $('#heroHp').style.width=(battle.pet.hp/battle.pet.hpMax*100)+'%';
+  $('#heroHpTxt').textContent=`${battle.pet.hp.toFixed(0)}/${battle.pet.hpMax}`;
+  logBattle('🛡️ 守势!减伤60% 回复10%生命');
+  setTimeout(foeAttack,600);
+};
+$('#fleeBtn').onclick=()=>{
+  if(!battle||battle.over)return;
+  modal('撤退','确定撤退?将损失少量金币',[
+    {text:'撤退',cls:'',cb:()=>{
+      const lose=Math.min(G.coin,15);
+      G.coin-=lose;
+      battle=null;
+      logBattle(`💨 撤退,损失${lose}🪙`);
+      toast('已撤退');
+      updateTopbar();save();renderBattle();
+    }},
+    {text:'继续战斗',cls:'gold'}
+  ]);
+};
+
+// 蓄力大招
+const cz=$('#chargeZone');
+let bIsCharging=false,bChargeAmt=0,bChargeT=null;
+function bStart(e){
+  if(!battle||battle.over||battle.turn!=='hero')return;
+  e.preventDefault();
+  bIsCharging=true;bChargeAmt=0;
+  cz.classList.add('charging');
+  $('#chargeTxt').textContent='⚡ 蓄力中... 释放!';
+  bChargeT=setInterval(()=>{
+    bChargeAmt=Math.min(100,bChargeAmt+3);
+    $('#chargeFill').style.width=bChargeAmt+'%';
+    if(bChargeAmt>=100){
+      clearInterval(bChargeT);
+    }
+  },30);
+}
+function bEnd(){
+  if(!bIsCharging)return;
+  bIsCharging=false;
+  clearInterval(bChargeT);
+  cz.classList.remove('charging');
+  if(bChargeAmt>30){
+    const power=1+bChargeAmt/100*2;
+    const crit=bChargeAmt>=100;
+    petAttack(power,crit);
+    logBattle(`🌟 释放${bChargeAmt}%蓄力,威力${(power*100|0)}%!`);
+  }else{
+    $('#chargeTxt').textContent='长按蓄力·释放绝技💥';
+  }
+  bChargeAmt=0;
+  $('#chargeFill').style.width='0%';
+  $('#chargeTxt').textContent='长按蓄力·释放绝技💥';
+}
+cz.addEventListener('touchstart',bStart,{passive:false});
+cz.addEventListener('touchend',bEnd);
+cz.addEventListener('touchcancel',bEnd);
+cz.addEventListener('mousedown',bStart);
+cz.addEventListener('mouseup',bEnd);
+cz.addEventListener('mouseleave',bEnd);
+
+// ====== 探索系统 ======
+function initZone(){
+  G.exploreTiles=[];
+  const z=ZONES[G.zone];
+  for(let i=0;i<25;i++){
+    G.exploreTiles.push({state:'fog'});
+  }
+  save();
+}
+
+function renderExplore(){
+  const g=$('#exploreGrid');
+  g.innerHTML='';
+  if(G.exploreTiles.length!==25)initZone();
+  const z=ZONES[G.zone];
+  $('#zoneName').textContent=z.name;
+  $('#zoneLv').textContent=G.zoneLv;
+  let cleared=0;
+  G.exploreTiles.forEach((t,i)=>{
+    const el=document.createElement('div');
+    el.className='exp-tile';
+    if(t.state==='fog'){
+      el.classList.add('fog');
+    }else if(t.state==='cleared'){
+      el.classList.add('cleared');
+      el.textContent=t.icon||'🌿';
+      cleared++;
+    }else if(t.state==='found'){
+      el.classList.add('found');
+      el.textContent=t.icon;
+      cleared++;
+    }
+    el.onclick=()=>exploreTile(i);
+    // 双击重置
+    let lastTap=0;
+    el.addEventListener('touchend',()=>{
+      const now=Date.now();
+      if(now-lastTap<300 && t.state!=='fog'){
+        modal('重置秘境','是否重置当前秘境?<br>所有迷雾会重新出现。',[
+          {text:'重置',cls:'',cb:()=>{initZone();renderExplore();}},
+          {text:'取消',cls:'gold'}
+        ]);
+      }
+      lastTap=now;
+    });
+    g.appendChild(el);
+  });
+  $('#exploredCnt').textContent=cleared;
+}
+
+function exploreTile(i){
+  const t=G.exploreTiles[i];
+  if(t.state!=='fog')return;
+  if(G.energy<1){toast('体力不足!','red');return}
+  G.energy--;
+  const z=ZONES[G.zone];
+  const r=Math.random();
+  // 25%找到宝藏 70%普通 5%空地
+  if(r<.25){
+    t.state='found';
+    const lootRoll=Math.random();
+    let icon='💰',msg='';
+    if(lootRoll<.35){
+      // 金币
+      const c=rand(z.rewards.coin[0],z.rewards.coin[1])*G.zoneLv;
+      G.coin+=c;icon='🪙';msg=`+${c}🪙`;
+    }else if(lootRoll<.6){
+      // 种子
+      const s=pick(z.rewards.seeds);
+      const cnt=rand(1,3);
+      G.bag[s]=(G.bag[s]||0)+cnt;
+      icon=SEEDS[s].icon;msg=`+${cnt}个${SEEDS[s].name}种`;
+    }else if(lootRoll<.6+z.rewards.gemRate){
+      const gm=rand(1,2)*G.zoneLv;
+      G.gem+=gm;icon='💎';msg=`+${gm}💎`;
+    }else if(lootRoll<.85){
+      // 食物
+      const fs=['carrot','wheat','corn'];
+      const f=pick(fs);
+      const cnt=rand(2,4);
+      G.bag[f]=(G.bag[f]||0)+cnt;
+      icon=FOODS[f].icon;msg=`+${cnt}个${FOODS[f].name}`;
+    }else{
+      // 稀有 - 灵兽蛋
+      const eligibleRarity=['N','R'][Math.min(1,G.zoneLv-1)]||'N';
+      const cands=Object.keys(PETS).filter(k=>PETS[k].rarity===eligibleRarity);
+      if(cands.length){
+        const tp=pick(cands);
+        const def=PETS[tp];
+        const np={id:Date.now()+Math.random(),type:tp,name:def.name,lv:1,exp:0,hp:def.hp,hpMax:def.hp,hunger:0};
+        G.pets.push(np);
+        if(!G.selectedPet)G.selectedPet=np.id;
+        if(!G.battlePet)G.battlePet=np.id;
+        icon=def.icon;msg=`遇见${def.name}!`;
+      }
+    }
+    t.icon=icon;
+    addExp(2);
+    toast('🌟 发现宝藏! '+msg,'gold');
+  }else if(r<.92){
+    t.state='cleared';
+    t.icon=pick(z.emoji);
+    if(Math.random()<.4){G.coin+=rand(2,8);toast(`+${rand(2,8)}🪙`)}
+  }else{
+    t.state='cleared';
+    t.icon='💨';
+    toast('一无所获...');
+  }
+  updateTopbar();save();renderExplore();
+  // 全部探索完
+  if(G.exploreTiles.every(x=>x.state!=='fog')){
+    setTimeout(()=>{
+      toast('🎊 本层探索完毕!','gold');
+    },500);
+  }
+}
+
+$('#resetZoneBtn').onclick=()=>{
+  modal('重置秘境','花费<strong>3⚡体力</strong>重置当前秘境?',[
+    {text:'重置',cls:'gold',cb:()=>{
+      if(G.energy<3){toast('体力不足','red');return}
+      G.energy-=3;
+      initZone();updateTopbar();renderExplore();
+      toast('秘境已重置');
+    }},
+    {text:'取消'}
+  ]);
+};
+
+$('#nextZoneBtn').onclick=()=>{
+  const cleared=G.exploreTiles.filter(t=>t.state!=='fog').length;
+  if(cleared<25){
+    toast('需先探索完当前层','red');return;
+  }
+  if(G.zone<ZONES.length-1){
+    modal('深入下层',`即将进入<strong>${ZONES[G.zone+1].name}</strong>!<br>奖励更丰厚,但敌人更强大。`,[
+      {text:'前进',cls:'gold',cb:()=>{
+        G.zone++;G.zoneLv++;initZone();renderExplore();
+        toast(`进入${ZONES[G.zone].name}!`,'gold');
+      }},
+      {text:'留下'}
+    ]);
+  }else{
+    G.zoneLv++;initZone();renderExplore();
+    toast(`第${G.zoneLv}层开启!奖励翻倍`,'gold');
+  }
+};
+
+// ====== 头像点击-玩家信息 ======
+$('#avatarBtn').onclick=()=>{
+  modal(G.player.name,
+    `<strong>${G.player.title}</strong> · Lv.${G.player.lv}<br>
+    经验: ${G.player.exp}/${G.player.lv*20}<br>
+    🪙 金币: ${G.coin} · 💎 灵石: ${G.gem}<br>
+    ⚡ 体力: ${G.energy}/${G.energyMax}<br><br>
+    <span style="font-size:11px;color:var(--ink-soft)">所有进度自动保存到本地</span>`,
+    [
+      {text:'重命名',cls:'jade',cb:()=>{
+        const nm=prompt('请输入新名字:',G.player.name);
+        if(nm&&nm.length<=12){G.player.name=nm;updateTopbar();save();}
+      }},
+      {text:'重新开始',cls:'',cb:()=>{
+        if(confirm('确定重置所有进度?')){
+          localStorage.removeItem(LS_KEY);
+          location.reload();
+        }
+      }},
+      {text:'关闭',cls:'gold'}
+    ]
+  );
+};
+
+// ====== 初始化 ======
+function init(){
+  load();
+  spawnPetals();
+  // 初次进入赠送
+  if(G.pets.length===0){
+    const def=PETS.rabbit;
+    const startPet={id:Date.now(),type:'rabbit',name:def.name,lv:1,exp:0,hp:def.hp,hpMax:def.hp,hunger:0};
+    G.pets.push(startPet);
+    G.selectedPet=startPet.id;
+    G.battlePet=startPet.id;
+    setTimeout(()=>{
+      modal('🎉 欢迎来到桃源仙境',
+        `仙人馈赠：<br>🐰 <strong>白玉兔</strong> ×1<br>🌾 灵麦种 ×5<br>🌽 金穗种 ×2<br>🥕 胡萝卜 ×5<br><br>
+        <span style="font-size:12px;color:var(--ink-soft)">尝试拖动种子下田播种,或喂养灵兽吧!</span>`,
+        [{text:'开始游戏',cls:'gold'}]);
+    },300);
+  }
+  updateTopbar();
+  renderFarm();
+  // 教程
+  if(!G._taught){
+    G._taught=true;
+    setTimeout(()=>showGuide('💡 拖动下方种子袋的种子到田里播种'),1200);
+    save();
+  }
+}
+
+init();
+
+// 防止微信下拉
+document.addEventListener('touchmove',e=>{
+  if(e.target.closest('.scene')||e.target.closest('.battle-log')||e.target.closest('.inventory'))return;
+  if(e.cancelable)e.preventDefault();
+},{passive:false});
+
+// 防止双击缩放
+let lastTouchEnd=0;
+document.addEventListener('touchend',e=>{
+  const now=Date.now();
+  if(now-lastTouchEnd<300)e.preventDefault();
+  lastTouchEnd=now;
+},{passive:false});
+
+// 自动保存
+setInterval(save,15000);
+window.addEventListener('beforeunload',save);
+window.addEventListener('pagehide',save);
+
+</script>
+</body>
+</html>
